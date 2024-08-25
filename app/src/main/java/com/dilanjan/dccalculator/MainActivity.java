@@ -15,8 +15,8 @@ import android.util.Log;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "diladebug";
-    String valOne;
-    String valTwo;
+    String valOne; // stores the 1st value of expression
+    String valTwo; // stores the 2nd value of the expression
 
     Button btnClear;
     Button btnEqual;
@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnDivision;
     Button btnMultiply;
 
-    String selectedOperator;
+    String selectedOperator; // stores the operator selected.
     Boolean isOperatorSelected = false;
     Boolean newValEntered = false;
 
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.calculator);
+        setContentView(R.layout.calculator); // see res/layout/calculator.xml
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -60,6 +60,11 @@ public class MainActivity extends AppCompatActivity {
         btnClear = findViewById(R.id.btnClear);
         btnEqual = findViewById(R.id.btnEqual);
 
+        /*
+         * Loaded buttons via res/layout/calculator.xml
+         * to reuse variables defined.
+         * to support themeing functions included.
+         */
         btnOne = findViewById(R.id.btnOne);
         btnTwo = findViewById(R.id.btnTwo);
         btnThree = findViewById(R.id.btnThree);
@@ -95,13 +100,16 @@ public class MainActivity extends AppCompatActivity {
 
         btnEqual.setOnClickListener( calculateResult() );
 
+        /*
+         * This is to handle the decimal point / floating number values.
+         */
         btnDot.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String valueOnDisplay = outputDisplay.getText().toString();
                 int dotCount = valueOnDisplay.length() - valueOnDisplay.replace(".", "").length();
 
-                if (dotCount == 0) {
+                if (dotCount == 0) { // Allow to add a decimal point if there are no decimal points before.
                     outputDisplay.append(".");
                 }
             }
@@ -109,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
 
         btnClear.setOnClickListener( new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                valOne = "";
-                valTwo = "";
+            public void onClick(View v) { // reset to the default when C button is pressed.
+                valOne = null;
+                valTwo = null;
                 selectedOperator = "";
                 isOperatorSelected = false;
                 outputDisplay.setText("");
@@ -120,38 +128,49 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /*
+     * Do the calculation when Equal button is pressed
+     *
+     * @return
+     */
     private View.OnClickListener calculateResult() {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (valOne != null) {
-                    valTwo = outputDisplay.getText().toString();
+                    valTwo = outputDisplay.getText().toString(); // Take what is displayed on display
 
                     doCalc();
 
-                    valOne = null;
-                    valTwo = null;
-                    selectedOperator = "";
-                    resetButtonColors();
+                    valOne = null; // Reset the valOne
+                    valTwo = null; // Reset the valTwo
+                    selectedOperator = ""; // Reset selectedOperator
+                    resetButtonColors(); // Reset operator button styles if selected.
                 }
             }
         };
     }
 
+    /*
+     * Appends the character pressed to the existing value displayed on the screen.
+     */
     private View.OnClickListener appendToDisplay(String strVal) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isOperatorSelected) {
+                if (isOperatorSelected) { // if a operator is selected, Need to restart what needs to be displayed on display.
                     outputDisplay.setText("");
                     isOperatorSelected = false;
                 }
-                outputDisplay.append(strVal);
-                newValEntered = true;
+                outputDisplay.append(strVal); // Appends the value of strVal to the value currently displayed.
+                newValEntered = true; // appending value changed the displayed value. no operator is pressed after append.
             }
         };
     }
 
+    /*
+     * Handle the scenarios when a operator is pressed.
+     */
     private View.OnClickListener handleOperator(String strOperator) {
         return new View.OnClickListener() {
             @Override
@@ -164,18 +183,18 @@ public class MainActivity extends AppCompatActivity {
 
                 // Get what is typed on the display and the selected operator
                 String outputDisplayVal = outputDisplay.getText().toString();
-                double fvalDouble = Double.parseDouble(outputDisplayVal);
+                double fvalDouble = Double.parseDouble(outputDisplayVal); // String to double conversion
 
-                if (valOne == null || valOne.isEmpty()) { // Value entered before the operator should be the valOne
+                if (valOne == null || valOne.isEmpty()) { // Value entered before the operator has to be the valOne
                     valOne = String.valueOf(fvalDouble);
                     selectedOperator = strOperator;
-                } else if (valTwo == null || valTwo.isEmpty()) {
-                    if (newValEntered) {
+                } else if (valTwo == null || valTwo.isEmpty()) { // Perform calculation only if the valOne is present and valTwo is not set
+                    if (newValEntered) { // Allowed to change the operator if new value not appended.
                         valTwo = String.valueOf(fvalDouble);
-                        doCalc();
-                        valOne = String.valueOf(Double.parseDouble(outputDisplay.getText().toString()));
-                        valTwo = null;
-                        newValEntered = false;
+                        doCalc(); // Perform calculation
+                        valOne = String.valueOf(Double.parseDouble(outputDisplay.getText().toString())); // Re assign the result to valOne for subsequent calculations
+                        valTwo = null; // Reset valTwo to facilitate subsequent calculations
+                        newValEntered = false; // Calculation done, can await for number input next.
                     }
 
                     selectedOperator = strOperator;
@@ -186,6 +205,11 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    /*
+     * This changes the color of selected operator when pressed.
+     *
+     * @param strOperator
+     */
     private void highlightSelectedOperator(String strOperator) {
         switch(strOperator) {
             case "+":
@@ -203,6 +227,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+     * This clears any operator colors which have set as background.
+     */
     private void resetButtonColors() {
         btnAddition.setBackgroundColor(getResources().getColor(R.color.cal_primary, getTheme()));
         btnSubtract.setBackgroundColor(getResources().getColor(R.color.cal_primary, getTheme()));
@@ -210,7 +237,11 @@ public class MainActivity extends AppCompatActivity {
         btnDivision.setBackgroundColor(getResources().getColor(R.color.cal_primary, getTheme()));
     }
 
+    /*
+     * This does the calculation based on the two provided values.
+     */
     private void doCalc() {
+        // Calculation is performed only if the valOne, valTwo is set and also the operator is selected.
         if (!valOne.isEmpty() && !valTwo.isEmpty() && !selectedOperator.isEmpty()) {
             double valOneDouble = Double.parseDouble(valOne);
             double valTwoDouble = Double.parseDouble(valTwo);
@@ -228,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
                     result = valOneDouble * valTwoDouble;
                     break;
                 case "/":
-                    if (valTwoDouble > 0) {
+                    if (valTwoDouble > 0) { // Division by zero case handled.
                         result = valOneDouble / valTwoDouble;
                     } else {
                         error = true;
@@ -238,11 +269,12 @@ public class MainActivity extends AppCompatActivity {
                     error = true;
             }
 
-            if (error) {
+            if (error) { // if there is an error display error.
                 outputDisplay.setText("Error");
             } else {
                 int resultInt = (int) result;
 
+                // if the result has a value like 123.0 then check and remove the trailing zero and . to make it look like an int.
                 if ((double) resultInt == result) {
                     outputDisplay.setText(Integer.toString(resultInt));
                 } else {
